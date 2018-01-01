@@ -1,5 +1,5 @@
 {
-    "name": "spencer-mortensen/parser",
+    "name": "spencer-mortensen/exceptions",
     "type": "library",
     "description": "Convert built-in PHP errors into thrown exceptions",
     "keywords": [
