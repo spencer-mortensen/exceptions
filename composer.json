@@ -1,7 +1,7 @@
 {
     "name": "spencer-mortensen/exceptions",
     "type": "library",
-    "description": "Convert built-in PHP errors into thrown exceptions",
+    "description": "Catch fatal errors and warnings that would otherwise be difficult to handle",
     "keywords": [
         "exceptions"
     ],
