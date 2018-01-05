@@ -26,17 +26,59 @@
 namespace SpencerMortensen\Exceptions;
 
 use ErrorException;
+use InvalidArgumentException;
 
 class Exceptions
 {
-	public static function enable()
+	/** @var integer|null */
+	private static $depth;
+
+	/** @var integer|null */
+	private static $errorReportingLevel;
+
+	/** @var array|null */
+	private static $fatalErrorHandlers;
+
+	public static function on($onFatalError = null, $onError = null)
 	{
-		set_error_handler('SpencerMortensen\\Exceptions\\Exceptions::errorHandler');
+		$onFatalError = self::getOptionalHandler($onFatalError);
+		$onError = self::getOptionalHandler($onError);
+
+		if ($onError === null) {
+			$onError = __CLASS__ . '::errorHandler';
+		}
+
+		self::setup();
+
+		if (self::$depth === 0) {
+			self::$errorReportingLevel = error_reporting();
+			error_reporting(0);
+		}
+
+		set_error_handler($onError);
+		self::$fatalErrorHandlers[] = $onFatalError;
+
+		++self::$depth;
 	}
 
-	public static function disable()
+	private static function getOptionalHandler($handler)
 	{
-		restore_error_handler();
+		if ($handler === null) {
+			return null;
+		}
+
+		if (is_callable($handler)) {
+			return $handler;
+		}
+
+		throw self::invalidHandlerException($handler);
+	}
+
+	private static function invalidHandlerException($handler)
+	{
+		$handlerText = var_export($handler, true);
+
+		return new InvalidArgumentException("The provided handler ({$handlerText}) is not a valid callable.");
 	}
 
 	public static function errorHandler($level, $message, $file, $line)
@@ -45,5 +87,56 @@ class Exceptions
 		$code = null;
 
 		throw new ErrorException($message, $code, $level, $file, $line);
+	}
+
+	private static function setup()
+	{
+		if (self::$depth === null) {
+			self::$depth = 0;
+			self::$fatalErrorHandlers = array();
+			register_shutdown_function(__CLASS__ . '::fatalErrorHandler');
+		}
+	}
+
+	public static function fatalErrorHandler()
+	{
+		$exception = self::getErrorException();
+
+		for ($i = count(self::$fatalErrorHandlers) - 1; 0 <= $i; --$i) {
+			$handler = self::$fatalErrorHandlers[$i];
+
+			if ($handler == null) {
+				continue;
+			}
+
+			call_user_func($handler, $exception);
+		}
+	}
+
+	private static function getErrorException()
+	{
+		$data = error_get_last();
+		error_clear_last();
+
+		$message = trim($data['message']);
+		$code = null;
+		$level = $data['type'];
+		$file = $data['file'];
+		$line = $data['line'];
+
+		return new ErrorException($message, $code, $level, $file, $line);
+	}
+
+	public static function off()
+	{
+		--self::$depth;
+
+		array_pop(self::$fatalErrorHandlers);
+		restore_error_handler();
+
+		if (self::$depth === 0) {
+			error_reporting(self::$errorReportingLevel);
+			self::$errorReportingLevel = null;
+		}
 	}
 }
