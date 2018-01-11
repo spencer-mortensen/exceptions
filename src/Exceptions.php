@@ -116,7 +116,10 @@ class Exceptions
 	private static function getErrorException()
 	{
 		$data = error_get_last();
-		error_clear_last();
+
+		if (function_exists('error_clear_last')) {
+			error_clear_last();
+		}
 
 		$message = trim($data['message']);
 		$code = null;
