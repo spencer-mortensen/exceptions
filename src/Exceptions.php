@@ -102,6 +102,10 @@ class Exceptions
 	{
 		$exception = self::getErrorException();
 
+		if ($exception === null) {
+			return;
+		}
+
 		for ($i = count(self::$fatalErrorHandlers) - 1; 0 <= $i; --$i) {
 			$handler = self::$fatalErrorHandlers[$i];
 
@@ -116,6 +120,10 @@ class Exceptions
 	private static function getErrorException()
 	{
 		$data = error_get_last();
+
+		if ($data === null) {
+			return null;
+		}
 
 		if (function_exists('error_clear_last')) {
 			error_clear_last();
