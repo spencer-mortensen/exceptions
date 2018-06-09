@@ -93,7 +93,7 @@ class Exceptions
 	{
 		if (self::$depth === null) {
 			self::$depth = 0;
-			self::$fatalErrorHandlers = array();
+			self::$fatalErrorHandlers = [];
 			register_shutdown_function(__CLASS__ . '::fatalErrorHandler');
 		}
 	}
