@@ -29,20 +29,28 @@ use ErrorException;
 
 class Exceptions
 {
-	private static $handler;
+	private static $handlers;
 
 	public static function setHandler($handler)
 	{
-		if (self::$handler === null) {
+		if (self::$handlers === null) {
 			$onShutdown = [__CLASS__, 'onShutdown'];
 			register_shutdown_function($onShutdown);
 
 			$onException = [__CLASS__, 'onException'];
 			set_exception_handler($onException);
+
+			self::$handlers = [];
 		}
 
-		self::$handler = $handler;
+		self::$handlers[] = $handler;
 	}
+
+	public static function unsetHandler()
+	{
+		array_pop(self::$handlers);
+	}
+
 
 	public static function on()
 	{
@@ -65,7 +73,13 @@ class Exceptions
 
 	public static function onException($exception)
 	{
-		call_user_func(self::$handler, $exception);
+		if (self::$handlers === null) {
+			return;
+		}
+
+		for ($i = count(self::$handlers) - 1; 0 <= $i; --$i) {
+			call_user_func(self::$handlers[$i], $exception);
+		}
 	}
 
 	public static function onShutdown()
@@ -84,6 +98,6 @@ class Exceptions
 
 		$exception = new ErrorException($message, $code, $level, $file, $line);
 
-		call_user_func(self::$handler, $exception);
+		self::onException($exception);
 	}
 }
