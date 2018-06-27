@@ -31,6 +31,8 @@ class Exceptions
 {
 	private static $handlers;
 
+	private static $errorReportingLevel;
+
 	public static function setHandler($handler)
 	{
 		if (self::$handlers === null) {
@@ -43,14 +45,23 @@ class Exceptions
 			self::$handlers = [];
 		}
 
+		if (count(self::$handlers) === 0) {
+			self::$errorReportingLevel = error_reporting();
+			error_reporting(0);
+		}
+
 		self::$handlers[] = $handler;
 	}
 
 	public static function unsetHandler()
 	{
 		array_pop(self::$handlers);
-	}
 
+		if ((count(self::$handlers) === 0) && (self::$errorReportingLevel !== null)) {
+			error_reporting(self::$errorReportingLevel);
+			self::$errorReportingLevel = null;
+		}
+	}
 
 	public static function on()
 	{
