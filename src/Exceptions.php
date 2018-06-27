@@ -65,7 +65,7 @@ class Exceptions
 
 	public static function onException($exception)
 	{
-		(self::$handler)($exception);
+		call_user_func(self::$handler, $exception);
 	}
 
 	public static function onShutdown()
@@ -84,6 +84,6 @@ class Exceptions
 
 		$exception = new ErrorException($message, $code, $level, $file, $line);
 
-		(self::$handler)($exception);
+		call_user_func(self::$handler, $exception);
 	}
 }
