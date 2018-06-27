@@ -26,62 +26,36 @@
 namespace SpencerMortensen\Exceptions;
 
 use ErrorException;
-use InvalidArgumentException;
 
 class Exceptions
 {
-	/** @var integer|null */
-	private static $depth;
+	private static $handler;
 
-	/** @var integer|null */
-	private static $errorReportingLevel;
-
-	/** @var array|null */
-	private static $fatalErrorHandlers;
-
-	public static function on($onFatalError = null, $onError = null)
+	public static function setHandler($handler)
 	{
-		$onFatalError = self::getOptionalHandler($onFatalError);
-		$onError = self::getOptionalHandler($onError);
+		if (self::$handler === null) {
+			$onShutdown = [__CLASS__, 'onShutdown'];
+			register_shutdown_function($onShutdown);
 
-		if ($onError === null) {
-			$onError = __CLASS__ . '::errorHandler';
+			$onException = [__CLASS__, 'onException'];
+			set_exception_handler($onException);
 		}
 
-		self::setup();
+		self::$handler = $handler;
+	}
 
-		if (self::$depth === 0) {
-			self::$errorReportingLevel = error_reporting();
-			error_reporting(0);
-		}
-
+	public static function on()
+	{
+		$onError = [__CLASS__, 'onError'];
 		set_error_handler($onError);
-		self::$fatalErrorHandlers[] = $onFatalError;
-
-		++self::$depth;
 	}
 
-	private static function getOptionalHandler($handler)
+	public static function off()
 	{
-		if ($handler === null) {
-			return null;
-		}
-
-		if (is_callable($handler)) {
-			return $handler;
-		}
-
-		throw self::invalidHandlerException($handler);
+		restore_error_handler();
 	}
 
-	private static function invalidHandlerException($handler)
-	{
-		$handlerText = var_export($handler, true);
-
-		return new InvalidArgumentException("The provided handler ({$handlerText}) is not a valid callable.");
-	}
-
-	public static function errorHandler($level, $message, $file, $line)
+	public static function onError($level, $message, $file, $line)
 	{
 		$message = trim($message);
 		$code = null;
@@ -89,65 +63,27 @@ class Exceptions
 		throw new ErrorException($message, $code, $level, $file, $line);
 	}
 
-	private static function setup()
+	public static function onException($exception)
 	{
-		if (self::$depth === null) {
-			self::$depth = 0;
-			self::$fatalErrorHandlers = [];
-			register_shutdown_function(__CLASS__ . '::fatalErrorHandler');
-		}
+		(self::$handler)($exception);
 	}
 
-	public static function fatalErrorHandler()
+	public static function onShutdown()
 	{
-		$exception = self::getErrorException();
+		$error = error_get_last();
 
-		if ($exception === null) {
+		if ($error === null) {
 			return;
 		}
 
-		for ($i = count(self::$fatalErrorHandlers) - 1; 0 <= $i; --$i) {
-			$handler = self::$fatalErrorHandlers[$i];
-
-			if ($handler == null) {
-				continue;
-			}
-
-			call_user_func($handler, $exception);
-		}
-	}
-
-	private static function getErrorException()
-	{
-		$data = error_get_last();
-
-		if ($data === null) {
-			return null;
-		}
-
-		if (function_exists('error_clear_last')) {
-			error_clear_last();
-		}
-
-		$message = trim($data['message']);
+		$message = trim($error['message']);
 		$code = null;
-		$level = $data['type'];
-		$file = $data['file'];
-		$line = $data['line'];
+		$level = $error['type'];
+		$file = $error['file'];
+		$line = $error['line'];
 
-		return new ErrorException($message, $code, $level, $file, $line);
-	}
+		$exception = new ErrorException($message, $code, $level, $file, $line);
 
-	public static function off()
-	{
-		--self::$depth;
-
-		array_pop(self::$fatalErrorHandlers);
-		restore_error_handler();
-
-		if (self::$depth === 0) {
-			error_reporting(self::$errorReportingLevel);
-			self::$errorReportingLevel = null;
-		}
+		(self::$handler)($exception);
 	}
 }

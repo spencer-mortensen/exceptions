@@ -2,33 +2,36 @@
 
 namespace Example;
 
+use Error;
 use ErrorException;
 use Exception;
 use SpencerMortensen\Exceptions\Exceptions;
-use Throwable;
 
 require __DIR__ . '/autoload.php';
 
-$onFatalError = function (ErrorException $exception) {
-	$message = $exception->getMessage();
-	echo "handled fatal error: {$message}\n";
+$handler = function ($exception) {
+	echo "Handled: ", $exception->getMessage(), "\n";
 };
 
-Exceptions::on($onFatalError);
+Exceptions::setHandler($handler);
+error_reporting(0);
 
 try {
-	// throw new Exception('Armageddon', 666);
-	// eval('$x =');
-	// define(Pi, 3.14159);
-	// require 'missing_file';
+	Exceptions::on();
+
+	define(Pi, 3.14159);
 } catch (Exception $exception) {
 	$message = $exception->getMessage();
-	echo "caught exception: $message\n";
-} catch (Throwable $throwable) {
-	$message = $throwable->getMessage();
-	echo "caught throwable: $message\n";
+	echo "Caught: $message\n";
+} catch (Error $error) {
+	$message = $error->getMessage();
+	echo "Caught: $message\n";
+} finally {
+	Exceptions::off();
 }
 
-Exceptions::off();
+// throw new Exception('Armageddon', 666);
+// eval('$x =');
+require '';
 
 echo "exited normally\n";
