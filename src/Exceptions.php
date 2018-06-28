@@ -63,10 +63,13 @@ class Exceptions
 		}
 	}
 
-	public static function on()
+	public static function on($handler = null)
 	{
-		$onError = [__CLASS__, 'onError'];
-		set_error_handler($onError);
+		if ($handler === null) {
+			$handler = [__CLASS__, 'onError'];
+		}
+
+		set_error_handler($handler);
 	}
 
 	public static function off()
