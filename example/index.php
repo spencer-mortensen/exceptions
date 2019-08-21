@@ -5,33 +5,33 @@ namespace Example;
 use Error;
 use ErrorException;
 use Exception;
-use SpencerMortensen\Exceptions\Exceptions;
+use Throwable;
+use SpencerMortensen\Exceptions\ErrorHandler;
+use SpencerMortensen\Exceptions\ErrorHandling;
 
 require __DIR__ . '/autoload.php';
 
-$handler = function ($exception) {
-	echo "Handled: ", $exception->getMessage(), "\n";
-};
+class C implements ErrorHandler
+{
+	public function __construct()
+	{
+		new ErrorHandling($this, E_ALL);
+	}
 
-Exceptions::setHandler($handler);
-error_reporting(0);
+	public function handleThrowable(Throwable $throwable)
+	{
+		$message = $throwable->getMessage();
+		echo "HANDLED: {$message}\n";
+	}
 
-try {
-	Exceptions::on();
-
-	define(Pi, 3.14159);
-} catch (Exception $exception) {
-	$message = $exception->getMessage();
-	echo "Caught: $message\n";
-} catch (Error $error) {
-	$message = $error->getMessage();
-	echo "Caught: $message\n";
-} finally {
-	Exceptions::off();
+	public function run()
+	{
+		// define(Pi, 3.14159);
+		// throw new Exception('Armageddon', 666);
+		// eval('$x = ');
+		require '';
+	}
 }
 
-// throw new Exception('Armageddon', 666);
-// eval('$x =');
-require '';
-
-echo "exited normally\n";
+$c = new C();
+$c->run();

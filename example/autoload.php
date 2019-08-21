@@ -2,12 +2,15 @@
 
 namespace SpencerMortensen\Autoloader;
 
-$project = dirname(__DIR__);
+$autoloader = function (string $class) {
+	$namespace = 'SpencerMortensen\\Exceptions';
+	$directory = dirname(__DIR__) . '/src';
 
-$classes = array(
-	'SpencerMortensen\\Exceptions' => 'src'
-);
+	$relativeClass = substr($class, strlen($namespace) + 1);
+	$relativeFile = strtr($relativeClass, '\\', DIRECTORY_SEPARATOR) . '.php';
+	$absoluteFile = $directory . DIRECTORY_SEPARATOR . $relativeFile;
 
-require "{$project}/vendor/spencer-mortensen/autoloader/src/Autoloader.php";
+	include $absoluteFile;
+};
 
-new Autoloader($project, $classes);
+spl_autoload_register($autoloader);
