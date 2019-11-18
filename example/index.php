@@ -6,12 +6,12 @@ use Error;
 use ErrorException;
 use Exception;
 use Throwable;
-use SpencerMortensen\Exceptions\ErrorHandler;
+use SpencerMortensen\Exceptions\ErrorHandlerInterface;
 use SpencerMortensen\Exceptions\ErrorHandling;
 
 require __DIR__ . '/autoload.php';
 
-class C implements ErrorHandler
+class C implements ErrorHandlerInterface
 {
 	public function __construct()
 	{

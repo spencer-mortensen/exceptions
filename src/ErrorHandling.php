@@ -29,13 +29,13 @@ use ErrorException;
 
 class ErrorHandling
 {
-	/** @var ErrorHandler */
+	/** @var ErrorHandlerInterface */
 	private $handler;
 
 	/** @var int */
 	private $mask;
 
-	public function __construct(ErrorHandler $handler, int $mask = E_ALL)
+	public function __construct(ErrorHandlerInterface $handler, int $mask = E_ALL)
 	{
 		$this->handler = $handler;
 		$this->mask = $mask;
