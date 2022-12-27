@@ -3,20 +3,25 @@
 This project is available as a Composer Package:   
 [spencer-mortensen/exceptions](https://packagist.org/packages/spencer-mortensen/exceptions)
 
+## Overview
+
+Error handling in PHP is [complicated](https://spencermortensen.com/articles/php-error-handling/), but this library makes it bullet-proof:
+Create a method to handle exceptions (e.g. `$handler->handle($throwable);`) and you're good to go!
+
+This library converts all PHP notices, warnings, and errors into exceptions, so you can handle them.
+It also works on any thrown exceptions that make it up to the global scope.
+It even catches most of the fatal errors, which would otherwise be impossible to handle.
+
 
 ## Usage
 
-Example 1. Enable error handling at the beginning of your script:
+Example 1. Enable error handling for the entire program:
 
 ```php
-new ErrorHandling($handler, E_ALL);
+new ErrorHandling($errorHandler, E_ALL);
 ```
 
-This converts all PHP notices, warnings, and errors into exceptions and passes them to your handler.
-This also works with fatal errors and uncaught exceptions, so you can now handle the ghostly fatal issues that previously went undetected.
-
-
-Example 2. Build exception handling into your libraries:
+Example 2. Enable error handling ONLY for a portion of the code (useful when you're writing a library):
 
 ```php
 try {
@@ -28,11 +33,11 @@ try {
 ```
 
 This converts PHP notices, warnings, and errors into catchable exceptions, but _only_ for the duration of the try/catch block.
-This can be useful if you're writing a library, and would like to use exception handling, but can't alter the global behavior of PHP for your users.
 
+Example 3. Show the built-in PHP STDERR messages, so you can see errors while you're working on your error handler.
 
-## Unit tests
+```php
+new ErrorHandling($errorHandler, E_ALL, false);
+```
 
-This project uses the [Lens](http://lens.guide) unit-testing framework.
-
-[![Build Status](https://travis-ci.org/spencer-mortensen/exceptions.png?branch=master)](https://travis-ci.org/spencer-mortensen/exceptions)
+See the example area for working code and ideas.

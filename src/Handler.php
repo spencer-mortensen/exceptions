@@ -27,7 +27,7 @@ namespace SpencerMortensen\Exceptions;
 
 use Throwable;
 
-interface ErrorHandlerInterface
+interface Handler
 {
-	public function handleThrowable(Throwable $throwable);
+	public function handle (Throwable $throwable);
 }

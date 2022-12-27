@@ -26,75 +26,62 @@
 namespace SpencerMortensen\Exceptions;
 
 use ErrorException;
+use Throwable;
 
 class ErrorHandling
 {
-	/** @var ErrorHandlerInterface */
+	/** @var Handler */
 	private $handler;
 
 	/** @var int */
 	private $mask;
 
-	public function __construct(ErrorHandlerInterface $handler, int $mask = E_ALL)
+	public function __construct (Handler $handler, int $mask = E_ALL, $customOutput = true)
 	{
 		$this->handler = $handler;
 		$this->mask = $mask;
 
-		set_error_handler([$this, 'onError']);
-		set_exception_handler([$this->handler, 'handleThrowable']);
-		register_shutdown_function([$this, 'onShutdown']);
+		// Handle any uncaught Throwable object that bubbles up to the global scope
+		set_exception_handler([$handler, 'handle']);
 
-		// This is necessary to suppress the default output when handling
-		// a fatal error. We allow the user to control the output.
-		error_reporting(0);
-	}
+		// Handle any fatal error that otherwise could not be caught
+		register_shutdown_function([$this, 'shutdown']);
 
-	public function onError(int $level, string $message, string $file, string $line)
-	{
-		error_clear_last();
+		// Convert uncatchable errors to catchable ErrorException objects
+		self::on($mask);
 
-		if (self::getErrorException($this->mask, $level, $message, $file, $line, $exception)) {
-			throw $exception;
+		// Suppress the default stderr output, so we can control it ourselves
+		if ($customOutput) {
+			error_reporting(0);
 		}
 	}
 
-	public function onShutdown()
+	public function shutdown ()
 	{
 		$error = error_get_last();
 
-		if (isset($error) && self::getErrorException($this->mask, $error['type'], $error['message'], $error['file'], $error['line'], $exception)) {
-			$this->handler->handleThrowable($exception);
+		if (is_array($error) && (($error['type'] & $this->mask) !== 0)) {
+			$exception = new ErrorException(trim($error['message']), 0, $error['type'], $error['file'], $error['line']);
+			$this->handler->handle($exception);
 		}
 	}
 
-	public static function on(int $mask = E_ALL)
+	public static function on (int $mask = E_ALL)
 	{
-		$handler = function (int $level, string $message, string $file, string $line) use ($mask) {
+		$onError = function (int $level, string $message, string $file, string $line) use ($mask)
+		{
 			error_clear_last();
 
-			if (self::getErrorException($mask, $level, $message, $file, $line, $exception)) {
-				throw $exception;
+			if (($level & $mask) !== 0) {
+				throw new ErrorException(trim($message), 0, $level, $file, $line);
 			}
 		};
 
-		set_error_handler($handler);
+		set_error_handler($onError);
 	}
 
-	public static function off()
+	public static function off ()
 	{
 		restore_error_handler();
-	}
-
-	private static function getErrorException(int $mask, int $level, string $message, string $file, string $line, ErrorException &$exception = null): bool
-	{
-		if (($level & $mask) === 0) {
-			return false;
-		}
-
-		$message = trim($message);
-		$code = null;
-
-		$exception = new ErrorException($message, $code, $level, $file, $line);
-		return true;
 	}
 }
