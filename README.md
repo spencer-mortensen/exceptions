@@ -21,7 +21,7 @@ Example 1. Enable error handling for the entire program:
 new ErrorHandling($errorHandler, E_ALL);
 ```
 
-Example 2. Enable error handling ONLY for a portion of the code (useful when you're writing a library):
+Example 2. Enable error handling ONLY for your portion of the code:
 
 ```php
 try {
@@ -35,9 +35,16 @@ try {
 This converts PHP notices, warnings, and errors into catchable exceptions, but _only_ for the duration of the try/catch block.
 
 Example 3. Show the built-in PHP STDERR messages, so you can see errors while you're working on your error handler.
+If you're working on your error handler, and you're getting a blank screen, use this:
 
 ```php
 new ErrorHandling($errorHandler, E_ALL, false);
 ```
 
-See the [example]{https://github.com/spencer-mortensen/exceptions/tree/master/example} area for working code and ideas.
+When you're finished, set everything back to normal:
+
+```php
+new ErrorHandling($errorHandler, E_ALL);
+```
+
+See the [example](https://github.com/spencer-mortensen/exceptions/tree/master/example) area for working code and ideas.
