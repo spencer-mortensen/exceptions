@@ -1,37 +1,18 @@
 <?php
 
-namespace Example;
+namespace App;
 
-use Error;
-use ErrorException;
+use App\Handlers\MainHandler;
 use Exception;
-use Throwable;
-use SpencerMortensen\Exceptions\ErrorHandlerInterface;
 use SpencerMortensen\Exceptions\ErrorHandling;
+use SpencerMortensen\Exceptions\Handler;
 
-require __DIR__ . '/autoload.php';
+require __DIR__ . '/bootstrap.php';
 
-class C implements ErrorHandlerInterface
-{
-	public function __construct()
-	{
-		new ErrorHandling($this, E_ALL);
-	}
+$errorHandler = new MainHandler($settings, true);
+new ErrorHandling($errorHandler, E_ALL, false);
 
-	public function handleThrowable(Throwable $throwable)
-	{
-		$message = $throwable->getMessage();
-		echo "HANDLED: {$message}\n";
-	}
+// ERRORS:
 
-	public function run()
-	{
-		// define(Pi, 3.14159);
-		// throw new Exception('Armageddon', 666);
-		// eval('$x = ');
-		require '';
-	}
-}
-
-$c = new C();
-$c->run();
+define(Pi, 3.14159265);
+// throw new Exception('Armageddon', 666);

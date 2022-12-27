@@ -40,4 +40,4 @@ Example 3. Show the built-in PHP STDERR messages, so you can see errors while yo
 new ErrorHandling($errorHandler, E_ALL, false);
 ```
 
-See the [example]{https://github.com/spencer-mortensen/exceptions/tree/master/example} area for working code and ideas.
+See the example area for working code and ideas.
